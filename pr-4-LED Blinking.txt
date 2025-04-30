@@ -1,0 +1,23 @@
+#include<xc.h>
+#include<pic18f452.h>
+
+void msdelay(unsigned int time);
+void main()
+{
+    ADCON1=0x0F;
+    TRISD=0x00;
+    while(1)
+    {
+        PORTD=0xFF;
+        msdelay(250);
+        PORTD=0x00;
+        msdelay(250);
+    }
+}
+
+void msdelay(unsigned int time)
+{
+    int i,j;
+    for(i=0;i<time;i++)
+        for(j=0;j<710;j++);
+}

@@ -1,0 +1,36 @@
+//Memory Transfer
+#include<xc.h>
+#include<pic18f452.h>
+
+void main(void)
+{
+    int i, temp;
+    
+    int source[]={0x51, 0x52, 0x53, 0x54, 0x55};
+    int dest[]={0x00, 0x00, 0x00, 0x00, 0x00};
+    
+    for(i=0;i<=4;i++)
+    {
+        dest[i]=source[i];
+    }
+    return;
+}
+
+//Memory Exchange
+#include<xc.h>
+#include<pic18f452.h>
+
+void main(void)
+{
+    int i, temp;
+    
+    int source[]={0x11, 0x12, 0x13, 0x14, 0x15};
+    int dest[]={0x81, 0x82, 0x83, 0x84, 0x85};
+    
+    for(int i=0;i<=4;i++)
+    {
+        temp=source[i];
+        source[i]=dest[i];
+        dest[i]=temp;
+    }
+}

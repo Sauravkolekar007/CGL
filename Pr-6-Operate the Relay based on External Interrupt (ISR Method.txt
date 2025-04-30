@@ -1,0 +1,26 @@
+#pragma config OSC = HS	
+#pragma config WDT = OFF 
+//#pragma config LVP = OFF	
+//#pragma config PBADEN = OFF	
+#include <xc.h>
+#include <p18f452.h>
+
+void interrupt ISR()
+{
+PORTBbits.RB2 = ~PORTBbits.RB2;                  
+INTCONbits.INT0IF = 0;                          
+}
+
+void main()                         
+{
+                    
+TRISBbits.RB2 = 0;                  
+PORTBbits.RB2 = 0;	         
+PORTBbits.RB0=1;
+INTCON2=0x00;
+INTCONbits.INT0IF =0;                        
+INTCONbits.INT0IE =1; 
+INTCONbits.GIE = 1;     
+while(1);		 
+
+}

@@ -1,0 +1,125 @@
+#include <xc.h>
+
+// Configuration bits
+#pragma config WDT = OFF      // Disable Watchdog Timer
+#pragma config LVP = OFF      // Disable Low-Voltage Programming
+#pragma config PBADEN = OFF   // Disable PORTB analog inputs
+
+// LCD Connections
+#define LCD_DATA    PORTD               // LCD data port
+#define en          PORTEbits.RE2      // Enable signal
+#define rw          PORTEbits.RE1      // Read/Write signal
+#define rs          PORTEbits.RE0      // Register select signal
+
+// Function Prototypes
+void ADC_Init(void);
+unsigned int Get_ADC_Result(void);
+void Start_Conversion(void);
+void msdelay(unsigned int time);
+void init_LCD(void);
+void LCD_command(unsigned char cmd);
+void LCD_data(unsigned char data);
+void LCD_write_string(char *str);
+
+// Main Program
+void main() {
+    char msg1[] = "LM35 Interface";
+    char msg2[] = "Temp.:";
+    char msg3[] = {0xDF, 'C', '\0'}; // Degree symbol and 'C'
+    unsigned int adc_val;
+    unsigned char temp;
+    unsigned char Hundreds, Tens, Ones;
+
+    TRISD = 0x00; // PORTD as output (LCD data)
+    TRISE = 0x00; // PORTE as output (LCD control)
+
+    ADC_Init();       // Initialize ADC
+    init_LCD();       // Initialize LCD
+
+    LCD_write_string(msg1);    // Display welcome message
+    LCD_command(0xC0);         // Go to 2nd line
+    LCD_write_string(msg2);    // Display "Temp.:"
+
+    while (1) {
+        Start_Conversion();
+        adc_val = Get_ADC_Result(); // Read ADC result
+
+        // Convert ADC value to temperature (°C)
+        // LM35 = 10mV/°C, 5V/1024 = ~4.88mV per bit
+        // Temp = (adc_val * 500) / 1024
+        temp = (adc_val * 500UL) / 1024;
+
+        // Break into digits
+        Hundreds = (temp / 100) + 0x30;
+        Tens     = ((temp % 100) / 10) + 0x30;
+        Ones     = (temp % 10) + 0x30;
+
+        LCD_command(0xC7);     // Move cursor to 8th position
+        LCD_data(Hundreds);   // Display hundreds digit
+        LCD_data(Tens);       // Display tens digit
+        LCD_data(Ones);       // Display ones digit
+        LCD_write_string(msg3); // Display °C
+
+        msdelay(300); // Delay
+    }
+}
+
+// Function Definitions
+
+void ADC_Init() {
+    ADCON0 = 0b00000001; // Select AN0, ADC ON
+    ADCON1 = 0x0E;       // AN0 = analog, rest digital
+    ADCON2 = 0b10001110; // Right justified, 2TAD, Fosc/64
+}
+
+void Start_Conversion() {
+    ADCON0bits.GO = 1; // Start conversion
+}
+
+unsigned int Get_ADC_Result() {
+    while (ADCON0bits.GO); // Wait for conversion
+    return ((ADRESH << 8) + ADRESL); // Combine 10-bit result
+}
+
+void msdelay(unsigned int time) {
+    unsigned int i, j;
+    for (i = 0; i < time; i++)
+        for (j = 0; j < 275; j++); // Calibrated for ~1ms delay
+}
+
+void init_LCD(void) {
+    LCD_command(0x38); // 8-bit, 2-line
+    msdelay(15);
+    LCD_command(0x01); // Clear display
+    msdelay(15);
+    LCD_command(0x0C); // Display ON, cursor OFF
+    msdelay(15);
+    LCD_command(0x80); // Cursor to first line
+    msdelay(15);
+}
+
+void LCD_command(unsigned char cmd) {
+    LCD_DATA = cmd;
+    rs = 0;
+    rw = 0;
+    en = 1;
+    msdelay(15);
+    en = 0;
+}
+
+void LCD_data(unsigned char data) {
+    LCD_DATA = data;
+    rs = 1;
+    rw = 0;
+    en = 1;
+    msdelay(15);
+    en = 0;
+}
+
+void LCD_write_string(char *str) {
+    while (*str != 0) {
+        LCD_data(*str);
+        msdelay(15);
+        str++;
+    }
+}

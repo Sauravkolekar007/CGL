@@ -1,0 +1,40 @@
+//Ascending sorting
+
+#include <xc.h> 
+#include<pic18f452.h> 
+void main(void) { 
+int i,j,temp; 
+int asc[]={0x09,0x04,0x02,0x05}; 
+for(i=0;i<=3;i++) 
+{ 
+for(j=i+1;j<=3;j++) 
+{ 
+if(asc[i]>asc[j]) 
+{ 
+temp=asc[i]; 
+asc[i]=asc[j]; 
+asc[j]=temp; 
+} 
+} 
+} 
+} 
+
+//Descending order
+#include <xc.h> 
+#include<pic18f452.h> 
+void main(void) { 
+    int i,j,temp; 
+    int arr[]={0x02,0x05,0x03,0x09}; 
+    for(i=0;i<=3;i++) 
+    { 
+        for(j=i+1;j<=3;j++) 
+        { 
+            if(arr[i]<arr[j]) 
+            { 
+                temp=arr[i]; 
+                arr[i]=arr[j]; 
+                arr[j]=temp; 
+            } 
+        } 
+    } 
+} 
